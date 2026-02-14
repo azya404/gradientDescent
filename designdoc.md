@@ -68,3 +68,43 @@ Prompt Engineering: Iterate on the LLM system prompt in a web playground before 
 Voice Selection: Navigate the TTS provider's Voice Library and select the perfect voice model (e.g., a hyper-energetic tech influencer or a deep, robotic corporate voice), then pass the specific Voice ID to the backend lead.
 
 The 3-Minute Demo Skit: Write the script for the final video submission. Plan out the "split-screen" video showing a user typing perfectly good code, only to be verbally destroyed by the AI.
+
+# New addition
+But here is the brutal reality of trying to build that in under 24 hours: The Latency Trap.
+
+If you try to build a true live screen-reading AI, your app has to continuously take screenshots, send them via WebSockets to a Vision API, wait for the LLM to parse the code, generate a text response, and then pipe that through a Text-to-Speech API. Even with the fastest models available, that round-trip takes about 3 to 6 seconds.
+
+If you do that live, you will type something, and there will be 5 seconds of awkward dead silence before the AI finally insults you. It completely ruins the comedic timing of the roast. Plus, managing WebRTC or continuous WebSocket streams will eat up all of your development time, leaving your beginner teammates with nothing to integrate.
+
+Here is how you solve this while still delivering a killer presentation:
+
+🎬 The "Movie Magic" Demo Video
+Hackathon demo videos are about selling the experience of the product. You do not need the app to read your screen live to make the 3-minute video look incredible.
+
+Record the Code: You just screen-record yourself typing out a Python solution in VS Code or LeetCode, making mistakes or writing unoptimized code on purpose.
+
+Record the AI: You take that same code, paste it into your app's frontend, and record the AI generating its audio roasts.
+
+Stitch It Together: Your teammates take those two separate videos, put them side-by-side in CapCut or Premiere, and manually sync the audio so the AI interrupts you right as you make a mistake.
+
+To the judges, it looks exactly like a live, real-time interview call. It guarantees perfect comedic timing, zero latency hiccups, and a polished pitch.
+
+⚙️ How the Actual App Works (The "Checkpoint" Method)
+When the judges walk up to your table on Saturday and ask to see it working live, you still want it to feel interactive. Instead of a continuous live video stream, you use an Event-Driven architecture.
+
+You build a giant "Run Code" or "Submit" button on your frontend.
+
+You type a few lines of code into the browser.
+
+You hit the button.
+
+That is the exact moment your Node backend fires off the API calls.
+
+The AI immediately responds with the audio roast based on what you just submitted.
+
+It still feels incredibly interactive and live to the user, but you save yourself the nightmare of building a continuous screen-capture loop, allowing you to actually finish the core logic before the deadline.
+
+Do you want to stick with this Event-Driven approach to ensure you finish on time, or do you want me to outline the WebSocket architecture required if you absolutely want to attempt the live screen-reading?
+
+GPT-4o Low Latency Screen to Voice Tutorial
+This video demonstrates the architecture required to build a low-latency screen-reading AI, showing exactly what goes into handling continuous OCR and voice streams if you decide to explore that route.
