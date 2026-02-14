@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import CodeEditor from './components/CodeEditor';
 import AIAvatar from './components/AIAvatar';
 import LiveAudioRecorder from './components/LiveAudioRecorder';
+import WebcamPreview from './components/WebcamPreview';
 import { useLiveSession } from './hooks/useLiveSession';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import type { AnimationState } from './types';
@@ -223,11 +224,10 @@ const App: React.FC = () => {
             <button
               onClick={handleClear}
               disabled={!isInterviewActive && code === ''}
-              className={`px-4 py-2 font-bold rounded transition-all transform ${
-                !isInterviewActive && code === ''
+              className={`px-4 py-2 font-bold rounded transition-all transform ${!isInterviewActive && code === ''
                   ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
                   : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300 active:scale-95'
-              }`}
+                }`}
             >
               CLEAR
             </button>
@@ -251,8 +251,11 @@ const App: React.FC = () => {
           <CodeEditor
             value={code}
             setCode={handleCodeChange}
-            onTyping={() => {}}
+            onTyping={() => { }}
           />
+
+          {/* Webcam PiP overlay */}
+          <WebcamPreview isActive={isInterviewActive} />
         </div>
 
         {/* Live Audio Recorder Status */}
