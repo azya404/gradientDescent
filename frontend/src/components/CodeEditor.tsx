@@ -19,7 +19,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onTyping, setCode }) => {
       <Editor
         height="100%"
         defaultLanguage="python"
-        defaultValue="// Paste your mid code here..."
+        defaultValue=""
         theme="vs-dark"
         onChange={handleEditorChange}
         options={{

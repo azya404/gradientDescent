@@ -41,11 +41,15 @@ const App: React.FC = () => {
         formData.append('audio', audioBlob, `explanation${ext}`);
       }
 
+      console.log('📤 Sending request to backend...');
+
       // Call backend
       const response = await fetch('/api/roast', {
         method: 'POST',
         body: formData,
       });
+
+      console.log('📥 Response received:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -59,18 +63,31 @@ const App: React.FC = () => {
       }
 
       // Get audio blob
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
+      const responseAudioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(responseAudioBlob);
 
       // Play audio
-      if (audioRef.current) {
+      if (audioRef.current && responseAudioBlob.size > 1000) {
         audioRef.current.src = audioUrl;
+        console.log('🎵 Playing roast audio...');
         audioRef.current.play().catch(err => {
           console.error('Audio playback error:', err);
+          // If autoplay fails, reset state after a delay
+          setTimeout(() => setCurrentStatus('idle'), 2000);
         });
+        setCurrentStatus('glitch_out');
+      } else {
+        console.warn('⚠️ Audio blob too small or invalid:', responseAudioBlob.size, 'bytes');
+        setCurrentStatus('idle');
       }
 
-      setCurrentStatus('glitch_out');
+      // Safety timeout: reset state after 30 seconds if audio never ends
+      setTimeout(() => {
+        if (currentStatus === 'glitch_out') {
+          console.log('⏰ Audio timeout - resetting state');
+          setCurrentStatus('idle');
+        }
+      }, 30000);
     } catch (err) {
       console.error('Submission error:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect to backend');
