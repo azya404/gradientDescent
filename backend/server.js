@@ -43,12 +43,18 @@ app.post("/api/roast", upload.single("audio"), async (req, res) => {
   try {
     // --- Step 1: Generate roast text via Gemini ---
     const roast = await generateRoast(code, language, audioFile?.buffer, audioFile?.mimetype);
-    console.log(`Roast generated: ${roast.substring(0, 80)}...`);
+    console.log(`Roast generated (${roast.length} chars): ${roast.substring(0, 100)}...`);
 
     // --- Step 2: Convert roast to speech via ElevenLabs ---
-    console.log("Converting roast to speech...");
+    console.log("Converting roast to speech via ElevenLabs...");
     const audioBuffer = await textToSpeech(roast);
-    console.log(`Audio generated: ${audioBuffer.length} bytes`);
+    console.log(`Audio buffer received: ${audioBuffer.length} bytes`);
+
+    // Sanity check: real MP3 files are at least a few KB
+    if (audioBuffer.length < 1000) {
+      console.warn("WARNING: Audio buffer suspiciously small, may not be valid audio");
+      console.warn("First 200 bytes as string:", audioBuffer.toString("utf-8", 0, 200));
+    }
 
     // Send audio as MP3 stream
     res.set({
@@ -58,7 +64,8 @@ app.post("/api/roast", upload.single("audio"), async (req, res) => {
     });
     res.send(audioBuffer);
   } catch (err) {
-    console.error("Pipeline error:", err);
+    console.error("Pipeline error:", err.message);
+    console.error("Full error:", err);
     res.status(500).json({ error: "The interviewer had a meltdown. Try again.", details: err.message });
   }
 });

@@ -1,27 +1,38 @@
-const { ElevenLabsClient } = require("elevenlabs");
-
-const client = new ElevenLabsClient(); // auto-reads ELEVENLABS_API_KEY from env
-
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "JBFqnCBsd6RMkjVDRZzb";
+const VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
 /**
- * Convert roast text to speech audio using ElevenLabs.
+ * Convert roast text to speech audio using ElevenLabs REST API directly.
  * @param {string} text - The roast text from Gemini
  * @returns {Promise<Buffer>} MP3 audio buffer
  */
 async function textToSpeech(text) {
-    const audioStream = await client.textToSpeech.convert(VOICE_ID, {
-        text,
-        model_id: "eleven_flash_v2_5", // low-latency model
-        output_format: "mp3_44100_128",
+    if (!ELEVENLABS_API_KEY) {
+        throw new Error("ELEVENLABS_API_KEY is not set in .env");
+    }
+
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "xi-api-key": ELEVENLABS_API_KEY,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            text,
+            model_id: "eleven_flash_v2_5",
+        }),
     });
 
-    // Collect the readable stream into a Buffer
-    const chunks = [];
-    for await (const chunk of audioStream) {
-        chunks.push(chunk);
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`ElevenLabs API error (${response.status}): ${errorBody}`);
     }
-    return Buffer.concat(chunks);
+
+    // Convert response to Buffer
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
 }
 
 module.exports = { textToSpeech };
