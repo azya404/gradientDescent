@@ -10,6 +10,26 @@ async function testHealth() {
   console.log("Response:", data);
 }
 
+async function testRoastTextOnly() {
+  console.log("\n=== Testing /api/roast (text only) ===");
+  const formData = new FormData();
+  formData.append("language", "python");
+  formData.append("code", `def sort(arr):
+  for i in range(len(arr)):
+    for j in range(len(arr)):
+      if arr[i] < arr[j]:
+        arr[i], arr[j] = arr[j], arr[i]
+  return arr`);
+
+  const res = await fetch("http://localhost:3001/api/roast", {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  console.log("Status:", res.status);
+  console.log("Response:", JSON.stringify(data, null, 2));
+}
+
 async function testRoastWithAudio() {
   console.log("\n=== Testing /api/roast (with audio) ===");
 
@@ -48,19 +68,17 @@ async function testRoastWithAudio() {
   return fibonacci(n-1) + fibonacci(n-2)`);
   formData.append("audio", audioBlob, "explanation" + path.extname(audioPath));
 
-  console.time("⏱️  Roast Latency");
   const res = await fetch("http://localhost:3001/api/roast", {
     method: "POST",
     body: formData,
   });
   const data = await res.json();
-  console.timeEnd("⏱️  Roast Latency");
-
   console.log("Status:", res.status);
   console.log("Response:", JSON.stringify(data, null, 2));
 }
 
 (async () => {
-  // await testHealth(); // Optional, skipping to focus on latency
+  await testHealth();
+  await testRoastTextOnly();
   await testRoastWithAudio();
 })();
