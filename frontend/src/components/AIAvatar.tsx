@@ -61,6 +61,7 @@ const AIAvatar: React.FC<AvatarProps> = ({ state, auraScore }) => {
         <div className="mt-2 font-mono font-bold text-2xl text-red-600">{auraScore}</div>
       </div>
 
+<<<<<<< Updated upstream
       {/* The Character Visual — DiceBear thumbs, fit in circle with state transition */}
       <motion.div
         className="w-80 h-80 rounded-full bg-zinc-800 border-4 border-zinc-700 overflow-hidden flex items-center justify-center relative"
@@ -81,6 +82,35 @@ const AIAvatar: React.FC<AvatarProps> = ({ state, auraScore }) => {
           />
         </AnimatePresence>
       </motion.div>
+=======
+      {/* The Character Visual */}
+      <div className="w-80 h-80 rounded-full bg-zinc-800 border-4 border-zinc-700 overflow-hidden shadow-[0_0_50px_rgba(255,0,0,0.2)] flex items-center justify-center relative">
+        {/* Animated background effect */}
+        <div className={`absolute inset-0 transition-all duration-500 ${
+          state === 'glitch_out' ? 'animate-pulse bg-red-900/30' :
+          state === 'loading' ? 'animate-spin bg-red-500/10' :
+          state === 'judging' ? 'bg-red-800/10' :
+          'bg-zinc-900'
+        }`} />
+
+        {/* Central eye/icon */}
+        <div className={`relative z-10 w-32 h-32 rounded-full border-4 transition-all duration-300 ${
+          state === 'glitch_out' ? 'border-red-500 bg-red-950 animate-pulse' :
+          state === 'loading' ? 'border-red-600 bg-red-900 animate-spin' :
+          state === 'judging' ? 'border-red-700 bg-zinc-900' :
+          'border-zinc-600 bg-zinc-800'
+        }`}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className={`w-16 h-16 rounded-full transition-all duration-300 ${
+              state === 'glitch_out' ? 'bg-red-500 animate-ping' :
+              state === 'loading' ? 'bg-red-600' :
+              state === 'judging' ? 'bg-red-700' :
+              'bg-zinc-600'
+            }`} />
+          </div>
+        </div>
+      </div>
+>>>>>>> Stashed changes
       
       <div className="mt-6 text-zinc-500 font-mono text-sm uppercase animate-pulse">
         Interviewer is {state}...
