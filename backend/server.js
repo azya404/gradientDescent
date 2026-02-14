@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const path = require("path");
 require("dotenv").config();
 
 const { generateRoast } = require("./gemini");
@@ -22,6 +23,11 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "alive", message: "The interviewer is ready to roast." });
+});
+
+// Browser test page
+app.get("/test", (req, res) => {
+  res.sendFile(path.join(__dirname, "test.html"));
 });
 
 // Core endpoint — accepts code + optional audio, returns a roast
