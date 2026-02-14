@@ -21,8 +21,8 @@ export function useAudioPlayer(): AudioPlayer {
 
     console.log('[Speaker] Initializing AudioContext...');
 
-    // Create AudioContext for playback (16kHz sample rate to match PCM)
-    const audioContext = new AudioContext({ sampleRate: 16000 });
+    // Create AudioContext for playback (24kHz sample rate to match PCM)
+    const audioContext = new AudioContext({ sampleRate: 24000 });
     audioContextRef.current = audioContext;
     nextStartTimeRef.current = audioContext.currentTime;
     isInitializedRef.current = true;
@@ -46,11 +46,11 @@ export function useAudioPlayer(): AudioPlayer {
       const audioBuffer = audioContext.createBuffer(
         1, // Mono
         float32Data.length,
-        16000 // 16kHz sample rate
+        24000 // 24kHz sample rate
       );
 
       // Copy Float32 data to the buffer
-      audioBuffer.copyToChannel(float32Data, 0);
+      audioBuffer.copyToChannel(float32Data as unknown as Float32Array<ArrayBuffer>, 0);
 
       // Create a buffer source
       const source = audioContext.createBufferSource();
