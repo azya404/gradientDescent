@@ -6,7 +6,7 @@ import type { AnimationState } from './types';
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string | undefined>("");
-  const [currentStatus, setCurrentStatus] = useState<AnimationState>('judging');
+  const [currentStatus, setCurrentStatus] = useState<AnimationState>('idle');
   const [auraScore] = useState(0);
 
   const handleSubmit = async () => {
