@@ -4,6 +4,7 @@ const multer = require("multer");
 require("dotenv").config();
 
 const { generateRoast } = require("./gemini");
+const { textToSpeech } = require("./elevenlabs");
 
 // --- App Init ---
 const app = express();
@@ -40,20 +41,24 @@ app.post("/api/roast", upload.single("audio"), async (req, res) => {
   console.log(`Audio: ${audioFile ? `${audioFile.size} bytes` : "none"}`);
 
   try {
-    // --- Generate roast via Gemini ---
+    // --- Step 1: Generate roast text via Gemini ---
     const roast = await generateRoast(code, language, audioFile?.buffer, audioFile?.mimetype);
     console.log(`Roast generated: ${roast.substring(0, 80)}...`);
 
-    res.json({
-      roast,
-      meta: {
-        language: language || "unknown",
-        codeLength: code.length,
-        hadAudio: !!audioFile,
-      },
+    // --- Step 2: Convert roast to speech via ElevenLabs ---
+    console.log("Converting roast to speech...");
+    const audioBuffer = await textToSpeech(roast);
+    console.log(`Audio generated: ${audioBuffer.length} bytes`);
+
+    // Send audio as MP3 stream
+    res.set({
+      "Content-Type": "audio/mpeg",
+      "Content-Length": audioBuffer.length,
+      "X-Roast-Text": encodeURIComponent(roast), // frontend can read the text too
     });
+    res.send(audioBuffer);
   } catch (err) {
-    console.error("Gemini error:", err);
+    console.error("Pipeline error:", err);
     res.status(500).json({ error: "The interviewer had a meltdown. Try again.", details: err.message });
   }
 });

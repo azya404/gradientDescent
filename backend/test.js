@@ -11,7 +11,7 @@ async function testHealth() {
 }
 
 async function testRoastTextOnly() {
-  console.log("\n=== Testing /api/roast (text only) ===");
+  console.log("\n=== Testing /api/roast (text only, no audio input) ===");
   const formData = new FormData();
   formData.append("language", "python");
   formData.append("code", `def sort(arr):
@@ -25,19 +25,32 @@ async function testRoastTextOnly() {
     method: "POST",
     body: formData,
   });
-  const data = await res.json();
-  console.log("Status:", res.status);
-  console.log("Response:", JSON.stringify(data, null, 2));
+
+  if (!res.ok) {
+    const err = await res.json();
+    console.log("❌ Error:", err);
+    return;
+  }
+
+  // Response is now audio/mpeg
+  const roastText = decodeURIComponent(res.headers.get("X-Roast-Text") || "");
+  console.log("Roast text:", roastText);
+
+  const arrayBuffer = await res.arrayBuffer();
+  const outputPath = path.join(__dirname, "output-roast-text-only.mp3");
+  fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
+  console.log(`✅ Audio saved to ${outputPath} (${arrayBuffer.byteLength} bytes)`);
+  console.log("   Open the MP3 file to hear the roast!");
 }
 
 async function testRoastWithAudio() {
-  console.log("\n=== Testing /api/roast (with audio) ===");
+  console.log("\n=== Testing /api/roast (with audio input) ===");
 
   // Check for common audio formats
   const extensions = [
     { ext: ".mp3", type: "audio/mpeg" },
     { ext: ".wav", type: "audio/wav" },
-    { ext: ".webm", type: "audio/webm" }
+    { ext: ".webm", type: "audio/webm" },
   ];
 
   let audioPath = null;
@@ -72,9 +85,21 @@ async function testRoastWithAudio() {
     method: "POST",
     body: formData,
   });
-  const data = await res.json();
-  console.log("Status:", res.status);
-  console.log("Response:", JSON.stringify(data, null, 2));
+
+  if (!res.ok) {
+    const err = await res.json();
+    console.log("❌ Error:", err);
+    return;
+  }
+
+  const roastText = decodeURIComponent(res.headers.get("X-Roast-Text") || "");
+  console.log("Roast text:", roastText);
+
+  const arrayBuffer = await res.arrayBuffer();
+  const outputPath = path.join(__dirname, "output-roast-with-audio.mp3");
+  fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
+  console.log(`✅ Audio saved to ${outputPath} (${arrayBuffer.byteLength} bytes)`);
+  console.log("   Open the MP3 file to hear the roast!");
 }
 
 (async () => {
