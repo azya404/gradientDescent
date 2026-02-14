@@ -3,6 +3,8 @@ const cors = require("cors");
 const multer = require("multer");
 require("dotenv").config();
 
+const { generateRoast } = require("./gemini");
+
 // --- App Init ---
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,7 +24,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Core endpoint — accepts code + optional audio, returns a roast
-app.post("/api/roast", upload.single("audio"), (req, res) => {
+app.post("/api/roast", upload.single("audio"), async (req, res) => {
   const { language, code } = req.body;
   const audioFile = req.file; // multer attaches this
 
@@ -37,20 +39,23 @@ app.post("/api/roast", upload.single("audio"), (req, res) => {
   console.log(`Code length: ${code.length} chars`);
   console.log(`Audio: ${audioFile ? `${audioFile.size} bytes` : "none"}`);
 
-  // --- Dummy response (will be replaced with Gemini + ElevenLabs) ---
-  const dummyRoast =
-    "Bro really wrote a nested for-loop and called it 'optimized'. " +
-    "This code has more red flags than your LinkedIn profile. " +
-    "I've seen better architecture in a Minecraft dirt house.";
+  try {
+    // --- Generate roast via Gemini ---
+    const roast = await generateRoast(code, language);
+    console.log(`Roast generated: ${roast.substring(0, 80)}...`);
 
-  res.json({
-    roast: dummyRoast,
-    meta: {
-      language: language || "unknown",
-      codeLength: code.length,
-      hadAudio: !!audioFile,
-    },
-  });
+    res.json({
+      roast,
+      meta: {
+        language: language || "unknown",
+        codeLength: code.length,
+        hadAudio: !!audioFile,
+      },
+    });
+  } catch (err) {
+    console.error("Gemini error:", err);
+    res.status(500).json({ error: "The interviewer had a meltdown. Try again.", details: err.message });
+  }
 });
 
 // --- Start Server ---
