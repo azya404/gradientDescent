@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brainrot Interviewer — Backend Test</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
       background: #0a0a0a;
@@ -16,11 +22,81 @@
       align-items: center;
       padding: 2rem;
     }
-    h1 { color: #ef4444; font-size: 1.5rem; margin-bottom: 0.25rem; }
-    .subtitle { color: #71717a; font-size: 0.75rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 2px; }
-    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1.5rem; }
-    label { color: #a1a1aa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; display: block; }
-    select, textarea {
+
+    h1 {
+      color: #ef4444;
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: #71717a;
+      font-size: 0.75rem;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #27272a;
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: none;
+      color: #71717a;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: #a1a1aa;
+    }
+
+    .tab.active {
+      color: #ef4444;
+      border-bottom-color: #ef4444;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    label {
+      color: #a1a1aa;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    select,
+    textarea {
       width: 100%;
       background: #18181b;
       border: 1px solid #27272a;
@@ -32,10 +108,29 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    select:focus, textarea:focus { border-color: #ef4444; }
-    textarea { min-height: 200px; resize: vertical; }
-    select { width: auto; min-width: 150px; cursor: pointer; }
-    .row { display: flex; gap: 1rem; align-items: center; }
+
+    select:focus,
+    textarea:focus {
+      border-color: #ef4444;
+    }
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+    }
+
+    select {
+      width: auto;
+      min-width: 150px;
+      cursor: pointer;
+    }
+
+    .row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
     .btn {
       padding: 0.75rem 1.5rem;
       border: none;
@@ -48,14 +143,72 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-    .btn:active { transform: scale(0.97); }
-    .btn-record { background: #27272a; color: #ef4444; border: 1px solid #ef4444; }
-    .btn-record:hover { background: #1c1c1e; }
-    .btn-record.recording { background: #ef4444; color: white; animation: pulse 1s infinite; }
-    .btn-submit { background: #ef4444; color: white; }
-    .btn-submit:hover { background: #dc2626; }
-    .btn-submit:disabled { background: #3f3f46; color: #71717a; cursor: not-allowed; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-record {
+      background: #27272a;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    .btn-record:hover {
+      background: #1c1c1e;
+    }
+
+    .btn-record.recording {
+      background: #ef4444;
+      color: white;
+      animation: pulse 1s infinite;
+    }
+
+    .btn-submit {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background: #dc2626;
+    }
+
+    .btn-submit:disabled {
+      background: #3f3f46;
+      color: #71717a;
+      cursor: not-allowed;
+    }
+
+    .btn-live {
+      background: #22c55e;
+      color: white;
+    }
+
+    .btn-live:hover {
+      background: #16a34a;
+    }
+
+    .btn-live.active {
+      background: #ef4444;
+      animation: pulse 1s infinite;
+    }
+
+    .btn-live.active:hover {
+      background: #dc2626;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
     .status-bar {
       background: #18181b;
       border: 1px solid #27272a;
@@ -67,10 +220,28 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-    .status-bar.error { border-color: #ef4444; color: #fca5a5; }
-    .status-bar.success { border-color: #22c55e; color: #86efac; }
-    .audio-section { display: flex; flex-direction: column; gap: 0.5rem; }
-    audio { width: 100%; border-radius: 8px; }
+
+    .status-bar.error {
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    .status-bar.success {
+      border-color: #22c55e;
+      color: #86efac;
+    }
+
+    .audio-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    audio {
+      width: 100%;
+      border-radius: 8px;
+    }
+
     .roast-text {
       background: #18181b;
       border: 1px solid #ef4444;
@@ -80,7 +251,9 @@
       color: #fca5a5;
       font-style: italic;
       line-height: 1.6;
+      min-height: 50px;
     }
+
     .badge {
       display: inline-block;
       background: #27272a;
@@ -90,76 +263,190 @@
       border-radius: 4px;
       margin-left: 0.5rem;
     }
+
+    .badge.live {
+      background: #22c55e33;
+      color: #22c55e;
+    }
+
+    .badge.recording {
+      background: #ef444433;
+      color: #ef4444;
+      animation: pulse 1s infinite;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #71717a;
+    }
+
+    .live-dot.active {
+      background: #22c55e;
+      animation: pulse 1s infinite;
+    }
+
+    .live-dot.mic {
+      background: #ef4444;
+      animation: pulse 1s infinite;
+    }
+
+    .transcript-box {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #a1a1aa;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .transcript-box .model {
+      color: #fca5a5;
+    }
+
+    .transcript-box .user {
+      color: #86efac;
+    }
   </style>
 </head>
+
 <body>
   <h1>🔥 Brainrot Interviewer</h1>
-  <p class="subtitle">Backend End-to-End Test</p>
+  <p class="subtitle">Backend Test Console</p>
 
   <div class="container">
-    <!-- Language + Code -->
-    <div>
-      <div class="row" style="margin-bottom: 0.5rem;">
-        <label style="margin:0;">Your Code</label>
-        <select id="language">
-          <option value="python">Python</option>
-          <option value="javascript">JavaScript</option>
-          <option value="java">Java</option>
-          <option value="cpp">C++</option>
-          <option value="typescript">TypeScript</option>
-          <option value="go">Go</option>
-        </select>
-      </div>
-      <textarea id="code" placeholder="Paste your mid code here...">def sort(arr):
+    <!-- Mode Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('legacy')">📮 Submit Mode</button>
+      <button class="tab" onclick="switchTab('live')">🎤 Live Mode</button>
+    </div>
+
+    <!-- ==================== LEGACY (SUBMIT) MODE ==================== -->
+    <div id="tab-legacy" class="tab-content active">
+      <div>
+        <div class="row" style="margin-bottom: 0.5rem;">
+          <label style="margin:0;">Your Code</label>
+          <select id="language">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="typescript">TypeScript</option>
+            <option value="go">Go</option>
+          </select>
+        </div>
+        <textarea id="code" placeholder="Paste your mid code here...">def sort(arr):
   for i in range(len(arr)):
     for j in range(len(arr)):
       if arr[i] < arr[j]:
         arr[i], arr[j] = arr[j], arr[i]
   return arr</textarea>
-    </div>
+      </div>
 
-    <!-- Audio Recording -->
-    <div>
-      <label>Voice Explanation <span class="badge">optional</span></label>
-      <div class="row">
-        <button id="recordBtn" class="btn btn-record" onclick="toggleRecording()">🎤 Hold to Record</button>
-        <span id="recordStatus" style="color:#71717a; font-size:0.8rem;">No audio recorded</span>
+      <div>
+        <label>Voice Explanation <span class="badge">optional</span></label>
+        <div class="row">
+          <button id="recordBtn" class="btn btn-record" onclick="toggleRecording()">🎤 Hold to Record</button>
+          <span id="recordStatus" style="color:#71717a; font-size:0.8rem;">No audio recorded</span>
+        </div>
+      </div>
+
+      <button id="submitBtn" class="btn btn-submit" onclick="submitRoast()">SUBMIT FOR REVIEW</button>
+
+      <div>
+        <label>Status</label>
+        <div id="status" class="status-bar">Ready. Paste code and hit submit.</div>
+      </div>
+
+      <div id="resultSection" style="display:none;">
+        <label>The Roast 🎤</label>
+        <div id="roastText" class="roast-text"></div>
+        <div class="audio-section" style="margin-top:0.75rem;">
+          <label>Listen</label>
+          <audio id="roastAudio" controls></audio>
+        </div>
       </div>
     </div>
 
-    <!-- Submit -->
-    <button id="submitBtn" class="btn btn-submit" onclick="submitRoast()">SUBMIT FOR REVIEW</button>
+    <!-- ==================== LIVE MODE ==================== -->
+    <div id="tab-live" class="tab-content">
+      <!-- Session Controls -->
+      <div class="row">
+        <button id="liveBtn" class="btn btn-live" onclick="toggleLiveSession()">🎤 START LIVE SESSION</button>
+        <div class="live-indicator">
+          <div id="sessionDot" class="live-dot"></div>
+          <span id="sessionLabel">Disconnected</span>
+        </div>
+        <div class="live-indicator" style="margin-left: 1rem;">
+          <div id="micDot" class="live-dot"></div>
+          <span id="micLabel">Mic off</span>
+        </div>
+      </div>
 
-    <!-- Status -->
-    <div>
-      <label>Status</label>
-      <div id="status" class="status-bar">Ready. Paste code and hit submit.</div>
-    </div>
+      <!-- Language + Code -->
+      <div>
+        <div class="row" style="margin-bottom: 0.5rem;">
+          <label style="margin:0;">Your Code <span class="badge live">live updates</span></label>
+          <select id="liveLanguage">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="typescript">TypeScript</option>
+            <option value="go">Go</option>
+          </select>
+        </div>
+        <textarea id="liveCode" placeholder="Start typing your code... the interviewer is watching 👀">def sort(arr):
+  for i in range(len(arr)):
+    for j in range(len(arr)):
+      if arr[i] < arr[j]:
+        arr[i], arr[j] = arr[j], arr[i]
+  return arr</textarea>
+      </div>
 
-    <!-- Roast Result -->
-    <div id="resultSection" style="display:none;">
-      <label>The Roast 🎤</label>
-      <div id="roastText" class="roast-text"></div>
-      <div class="audio-section" style="margin-top:0.75rem;">
-        <label>Listen</label>
-        <audio id="roastAudio" controls></audio>
+      <!-- Live Status -->
+      <div>
+        <label>Status</label>
+        <div id="liveStatus" class="status-bar">Click "Start Live Session" to begin.</div>
+      </div>
+
+      <!-- Transcript -->
+      <div>
+        <label>Conversation Transcript</label>
+        <div id="transcript" class="transcript-box">Transcript will appear here...</div>
       </div>
     </div>
   </div>
 
   <script>
+    // ==================== TAB SWITCHING ====================
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+    }
+
+    // ==================== LEGACY MODE (unchanged) ====================
     let mediaRecorder = null;
     let audioChunks = [];
     let recordedBlob = null;
     let isRecording = false;
 
-    // --- Recording ---
     async function toggleRecording() {
-      if (isRecording) {
-        stopRecording();
-      } else {
-        await startRecording();
-      }
+      if (isRecording) { stopRecording(); } else { await startRecording(); }
     }
 
     async function startRecording() {
@@ -167,64 +454,43 @@
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) audioChunks.push(e.data);
-        };
-
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
         mediaRecorder.onstop = () => {
           recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-          document.getElementById('recordStatus').textContent = 
+          document.getElementById('recordStatus').textContent =
             `✅ Recorded ${(recordedBlob.size / 1024).toFixed(1)}KB (${mediaRecorder.mimeType})`;
-          // Stop all tracks so the mic indicator goes away
           stream.getTracks().forEach(t => t.stop());
         };
-
         mediaRecorder.start();
         isRecording = true;
         document.getElementById('recordBtn').classList.add('recording');
         document.getElementById('recordBtn').textContent = '⏹ Stop Recording';
         document.getElementById('recordStatus').textContent = '🔴 Recording...';
-      } catch (err) {
-        setStatus(`Mic error: ${err.message}`, 'error');
-      }
+      } catch (err) { setStatus(`Mic error: ${err.message}`, 'error'); }
     }
 
     function stopRecording() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-      }
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
       isRecording = false;
       document.getElementById('recordBtn').classList.remove('recording');
       document.getElementById('recordBtn').textContent = '🎤 Record Again';
     }
 
-    // --- Submit ---
     async function submitRoast() {
       const code = document.getElementById('code').value.trim();
       const language = document.getElementById('language').value;
-
-      if (!code) {
-        setStatus('No code? Too scared to even try?', 'error');
-        return;
-      }
+      if (!code) { setStatus('No code? Too scared to even try?', 'error'); return; }
 
       const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'ROASTING...';
+      submitBtn.disabled = true; submitBtn.textContent = 'ROASTING...';
       document.getElementById('resultSection').style.display = 'none';
       setStatus('⏳ Sending to backend... (Gemini → ElevenLabs → MP3)');
 
       const formData = new FormData();
       formData.append('language', language);
       formData.append('code', code);
-
       if (recordedBlob) {
-        // Determine file extension from mime type
-        const ext = recordedBlob.type.includes('webm') ? '.webm' 
-                  : recordedBlob.type.includes('mp4') ? '.mp4' 
-                  : recordedBlob.type.includes('ogg') ? '.ogg' 
-                  : '.wav';
+        const ext = recordedBlob.type.includes('webm') ? '.webm' : recordedBlob.type.includes('mp4') ? '.mp4' : '.wav';
         formData.append('audio', recordedBlob, `explanation${ext}`);
         setStatus('⏳ Sending code + audio to backend...');
       }
@@ -233,36 +499,20 @@
         const startTime = Date.now();
         const res = await fetch('/api/roast', { method: 'POST', body: formData });
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        if (!res.ok) { const err = await res.json(); setStatus(`❌ Error ${res.status}: ${err.details || err.error}`, 'error'); return; }
 
-        if (!res.ok) {
-          const err = await res.json();
-          setStatus(`❌ Error ${res.status}: ${err.details || err.error}`, 'error');
-          return;
-        }
-
-        // Get roast text from header
         const roastText = decodeURIComponent(res.headers.get('X-Roast-Text') || '');
-        
-        // Get audio blob
         const audioBlob = await res.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
-
-        // Display results
         document.getElementById('roastText').textContent = roastText || '(roast text not in headers)';
         const audioEl = document.getElementById('roastAudio');
         audioEl.src = audioUrl;
         document.getElementById('resultSection').style.display = 'block';
-
         setStatus(`✅ Done in ${elapsed}s — ${(audioBlob.size / 1024).toFixed(0)}KB MP3`, 'success');
-
-        // Auto-play
-        audioEl.play().catch(() => {});
+        audioEl.play().catch(() => { });
       } catch (err) {
         setStatus(`❌ Network error: ${err.message}`, 'error');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'SUBMIT FOR REVIEW';
-      }
+      } finally { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT FOR REVIEW'; }
     }
 
     function setStatus(msg, type = '') {
@@ -270,7 +520,279 @@
       el.textContent = msg;
       el.className = 'status-bar' + (type ? ` ${type}` : '');
     }
+
+    // ==================== LIVE MODE ====================
+    let ws = null;
+    let liveSessionActive = false;
+    let micStream = null;
+    let audioContext = null;
+    let micProcessor = null;
+
+    // Audio playback
+    let playbackCtx = null;
+    let playbackQueue = [];
+    let isPlaying = false;
+
+    // Code debounce
+    let codeDebounceTimer = null;
+    let lastSentCode = '';
+
+    function toggleLiveSession() {
+      if (liveSessionActive) { stopLiveSession(); } else { startLiveSession(); }
+    }
+
+    async function startLiveSession() {
+      const btn = document.getElementById('liveBtn');
+      setLiveStatus('⏳ Connecting...');
+
+      try {
+        // 1. Connect WebSocket
+        const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${wsProtocol}//${location.host}`);
+
+        ws.onopen = () => {
+          setLiveStatus('⏳ Starting Gemini session...');
+          ws.send(JSON.stringify({ type: 'start', language: document.getElementById('liveLanguage').value }));
+        };
+
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          handleLiveMessage(msg);
+        };
+
+        ws.onerror = (err) => {
+          setLiveStatus('❌ WebSocket error', 'error');
+          console.error('WS error:', err);
+        };
+
+        ws.onclose = () => {
+          if (liveSessionActive) {
+            setLiveStatus('⚠️ Connection lost', 'error');
+            stopLiveSession(true);
+          }
+        };
+      } catch (err) {
+        setLiveStatus(`❌ Failed: ${err.message}`, 'error');
+      }
+    }
+
+    function handleLiveMessage(msg) {
+      switch (msg.type) {
+        case 'started':
+          liveSessionActive = true;
+          document.getElementById('liveBtn').textContent = '⏹ STOP SESSION';
+          document.getElementById('liveBtn').classList.add('active');
+          document.getElementById('sessionDot').classList.add('active');
+          document.getElementById('sessionLabel').textContent = 'Session active';
+          setLiveStatus('✅ Live session active — start coding and talking!', 'success');
+          clearTranscript();
+
+          // Start mic
+          startMicCapture();
+
+          // Start code watcher
+          startCodeWatcher();
+
+          // Send initial code if present
+          const initialCode = document.getElementById('liveCode').value.trim();
+          if (initialCode) {
+            ws.send(JSON.stringify({
+              type: 'code',
+              content: initialCode,
+              language: document.getElementById('liveLanguage').value
+            }));
+            lastSentCode = initialCode;
+          }
+          break;
+
+        case 'audio':
+          queueAudioChunk(msg.data);
+          break;
+
+        case 'transcript':
+          appendTranscript('model', msg.text);
+          break;
+
+        case 'input_transcript':
+          appendTranscript('user', msg.text);
+          break;
+
+        case 'interrupted':
+          // Clear playback queue and reset timing
+          playbackQueue = [];
+          nextPlayTime = 0;
+          appendTranscript('system', '⚡ [interrupted]');
+          break;
+
+        case 'error':
+          setLiveStatus(`❌ ${msg.message}`, 'error');
+          break;
+
+        case 'stopped':
+          setLiveStatus('Session ended by server');
+          stopLiveSession(true);
+          break;
+      }
+    }
+
+    function stopLiveSession(alreadyStopped = false) {
+      liveSessionActive = false;
+
+      // Stop mic
+      stopMicCapture();
+
+      // Stop code watcher
+      if (codeDebounceTimer) { clearTimeout(codeDebounceTimer); codeDebounceTimer = null; }
+
+      // Close WebSocket
+      if (ws && !alreadyStopped) {
+        ws.send(JSON.stringify({ type: 'stop' }));
+        ws.close();
+      }
+      ws = null;
+
+      // Reset UI
+      document.getElementById('liveBtn').textContent = '🎤 START LIVE SESSION';
+      document.getElementById('liveBtn').classList.remove('active');
+      document.getElementById('sessionDot').classList.remove('active');
+      document.getElementById('sessionLabel').textContent = 'Disconnected';
+      if (!alreadyStopped) setLiveStatus('Session ended.');
+    }
+
+    // --- Mic Capture: raw PCM 16kHz mono ---
+    async function startMicCapture() {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, sampleRate: 16000 }
+        });
+
+        audioContext = new AudioContext({ sampleRate: 16000 });
+        const source = audioContext.createMediaStreamSource(micStream);
+
+        // ScriptProcessorNode (deprecated but widely supported; AudioWorklet requires HTTPS)
+        micProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+        micProcessor.onaudioprocess = (e) => {
+          if (!liveSessionActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+          const float32 = e.inputBuffer.getChannelData(0);
+          // Convert float32 [-1,1] to int16
+          const int16 = new Int16Array(float32.length);
+          for (let i = 0; i < float32.length; i++) {
+            const s = Math.max(-1, Math.min(1, float32[i]));
+            int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+          }
+          // Base64 encode
+          const bytes = new Uint8Array(int16.buffer);
+          let binary = '';
+          for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+          const base64 = btoa(binary);
+
+          ws.send(JSON.stringify({ type: 'audio', data: base64 }));
+        };
+
+        source.connect(micProcessor);
+        micProcessor.connect(audioContext.destination);
+
+        document.getElementById('micDot').classList.add('mic');
+        document.getElementById('micLabel').textContent = 'Mic on';
+      } catch (err) {
+        console.error('Mic error:', err);
+        setLiveStatus(`⚠️ Mic failed: ${err.message}. Live session active but no mic.`, 'error');
+      }
+    }
+
+    function stopMicCapture() {
+      if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
+      if (audioContext) { audioContext.close().catch(() => { }); audioContext = null; }
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+      document.getElementById('micDot').classList.remove('mic');
+      document.getElementById('micLabel').textContent = 'Mic off';
+    }
+
+    // --- Code Watcher: debounced updates ---
+    function startCodeWatcher() {
+      const textarea = document.getElementById('liveCode');
+      textarea.addEventListener('input', onCodeChange);
+    }
+
+    function onCodeChange() {
+      if (codeDebounceTimer) clearTimeout(codeDebounceTimer);
+      codeDebounceTimer = setTimeout(() => {
+        const code = document.getElementById('liveCode').value.trim();
+        if (code && code !== lastSentCode && ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'code',
+            content: code,
+            language: document.getElementById('liveLanguage').value
+          }));
+          lastSentCode = code;
+        }
+      }, 2000); // 2 second debounce
+    }
+
+    // --- Audio Playback: PCM 24kHz 16-bit mono ---
+    let nextPlayTime = 0;
+
+    function queueAudioChunk(base64Data) {
+      // Decode base64 to Int16Array
+      const binaryStr = atob(base64Data);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+      const int16 = new Int16Array(bytes.buffer);
+
+      // Convert to Float32 for AudioContext
+      const float32 = new Float32Array(int16.length);
+      for (let i = 0; i < int16.length; i++) {
+        float32[i] = int16[i] / 32768;
+      }
+
+      // Create AudioContext on first use (use browser default sample rate)
+      if (!playbackCtx) {
+        playbackCtx = new AudioContext();
+        nextPlayTime = 0;
+      }
+
+      // Resume context if suspended (autoplay policy)
+      if (playbackCtx.state === 'suspended') {
+        playbackCtx.resume();
+      }
+
+      // Create buffer at 24000 Hz — AudioContext will resample to its native rate
+      const buffer = playbackCtx.createBuffer(1, float32.length, 24000);
+      buffer.getChannelData(0).set(float32);
+
+      const source = playbackCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(playbackCtx.destination);
+
+      // Schedule gaplessly: each chunk plays right after the previous one
+      const now = playbackCtx.currentTime;
+      if (nextPlayTime < now) nextPlayTime = now;
+      source.start(nextPlayTime);
+      nextPlayTime += buffer.duration;
+    }
+
+    // --- Transcript ---
+    function clearTranscript() {
+      document.getElementById('transcript').innerHTML = '';
+    }
+
+    function appendTranscript(role, text) {
+      const el = document.getElementById('transcript');
+      const span = document.createElement('span');
+      span.className = role;
+      const prefix = role === 'model' ? '🤖 ' : role === 'user' ? '🧑 ' : '';
+      span.textContent = prefix + text;
+      el.appendChild(span);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function setLiveStatus(msg, type = '') {
+      const el = document.getElementById('liveStatus');
+      el.textContent = msg;
+      el.className = 'status-bar' + (type ? ` ${type}` : '');
+    }
   </script>
 </body>
-</html>
 
+</html>

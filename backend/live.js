@@ -57,9 +57,6 @@ async function createLiveSession(callbacks) {
                 console.log("[Live] Connected to Gemini Live API");
             },
             onmessage: (message) => {
-                // Debug: log raw message keys
-                console.log("[Live] Message keys:", JSON.stringify(Object.keys(message)));
-
                 // --- Audio response chunks ---
                 if (
                     message.serverContent?.modelTurn?.parts
