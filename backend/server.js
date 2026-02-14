@@ -53,8 +53,8 @@ app.post("/api/roast", upload.single("audio"), async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Gemini error:", err.message);
-    res.status(500).json({ error: "The interviewer had a meltdown. Try again." });
+    console.error("Gemini error:", err);
+    res.status(500).json({ error: "The interviewer had a meltdown. Try again.", details: err.message });
   }
 });
 
