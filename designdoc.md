@@ -40,27 +40,26 @@ The stack leans on a lightweight JavaScript ecosystem to ensure rapid developmen
 
 To guarantee flawless comedic timing for the hackathon presentation, the system operates on explicit user triggers rather than continuous screen reading.
 
-1.  **Input:** The user pastes their solution (e.g., a brute-force $O(n^2)$ approach) into the React code editor.
-2.  **Trigger:** The user clicks the "Submit for Review" button, instantly initializing the browser's audio context.
-3.  **Request:** The frontend sends an HTTP POST request to the backend containing the language and the raw code string.
+1.  **Input:**
+    *   **Code:** The user pastes their solution (e.g., a brute-force $O(n^2)$ approach) into the React code editor.
+    *   **Speech (Optional but Recommended):** The user holds a "Explain Solution" button and verbally explains their terrible logic (e.g., "I think this double for-loop is actually O(1) because n is small").
+2.  **Trigger:** The user releases the button or clicks "Submit for Review".
+3.  **Request:** The frontend sends a **multipart/form-data** POST request containing the code (text) and the explanation (audio blob).
 4.  **Streaming Orchestration (Backend):**
-    *   The backend injects the code into the System Prompt.
-    *   It calls the Gemini API to generate the roast.
-    *   **Crucial Step:** The text generation API streams its output directly into the ElevenLabs API, bypassing the need to wait for the entire text block to generate (if possible) or chaining them tightly.
-5.  **Delivery & Playback:** The backend receives the audio stream and pipes it to the frontend.
+    *   **Multimodal Analysis:** The backend sends *both* the code text and the audio file to **Gemini 1.5 Flash** (which is multimodal and can hear audio natively).
+    *   Gemini generates the roast text based on the *bad code* AND the *delusional explanation*.
+    *   **Text-to-Speech:** The generated roast text is piped into the **ElevenLabs API**.
+5.  **Delivery & Playback:** The backend receives the audio stream from ElevenLabs and pipes it to the frontend.
 6.  **Reaction:** The frontend auto-plays the audio alongside a visual "Speaking" animation on the UI avatar.
 
 ## 4. API Contract
 
 **Endpoint:** `POST /api/roast`
 
-**Expected Request Payload (JSON):**
-```json
-{
-  "language": "python",
-  "code": "for i in range(len(nums)):\n  for j in range(i+1, len(nums)):\n    if nums[i] == nums[j]:\n      return True"
-}
-```
+**Expected Request Payload (Multipart/Form-Data):**
+*   `language`: (Text) "python"
+*   `code`: (Text) The user's code snippet.
+*   `audio`: (File/Blob) The recorded audio of the user explaining their code.
 
 **Expected Response:**
 *   **Content-Type:** `audio/mpeg`
@@ -74,35 +73,31 @@ To guarantee flawless comedic timing for the hackathon presentation, the system 
 *   **Environment Setup:**
     *   Initialize Node/Express server.
     *   Set up `.env` for `GEMINI_API_KEY` and `ELEVENLABS_API_KEY`.
-    *   Configure CORS to allow requests from the local React frontend.
-*   **Prompt Engineering:**
-    *   Write a strict system prompt instructing Gemini to output ONLY plain spoken text (no Markdown, no backticks, no emojis).
-    *   Inject the "Brainrot" personality: use words like "aura", "cooked", "O(n^2) garbage", "skill issue".
+    *   Configure CORS and `multer` (for file uploads).
+*   **Prompt Engineering & Multimodal Logic:**
+    *   Implement `Gemini 1.5 Flash` calls that accept both text (code) and audio (explanation).
+    *   System Prompt: "You are a toxic 10x engineer interviewer. The candidate has submitted code and an audio explanation. Roast their specific code errors AND mock their tone of voice/explanation absurdity. Keep response short."
 *   **Streaming Logic:**
-    *   Implement the controller logic for `POST /api/roast`.
-    *   Chain the Gemini text response into the ElevenLabs TTS SDK.
-    *   Ensure the response is piped back to the client as an audio stream.
+    *   Chain Gemini output -> ElevenLabs input -> Client Audio Stream.
 
 ### Phase 2: Frontend Engineering & UX Design
 **Owners:** Haasya & Dev
 
 *   **UI Scaffolding:**
     *   Initialize React app (Vite).
-    *   Build a two-column split-screen layout mimicking a video call (User video vs. AI Interviewer).
+    *   Build a two-column split-screen layout.
 *   **State Management:**
-    *   Implement the code input block (Monaco Editor or simple textarea).
-    *   Implement the "Submit" button.
-    *   Add a loading spinner/state for visual feedback while waiting for the roast.
+    *   Implement Code Editor (Monaco).
+    *   Implement **Audio Recorder**: Add a "Hold to Explain" button that records microphone input.
+    *   Implement "Submit" handling to package code + audio into `FormData`.
 *   **Audio Handling:**
-    *   Write logic to accept the incoming `audio/mpeg` blob from the backend.
-    *   Play it immediately upon receipt.
-    *   Ensure compliance with browser auto-play policies (trigger must be user interaction).
-*   **Visuals:**
-    *   Create the "AI Avatar" - a static image or CSS animation that pulses when audio is playing.
+    *   Play back the response audio blob.
+    *   Visualize the "Interviewer" speaking.
 
 ### Phase 3: The "Movie Magic" Demo Production
 **Owners:** All Team Members
 
-*   **Screen Recording:** Record writing terrible code in a real IDE, acting highly stressed on a webcam.
-*   **Asset Generation:** Run the terrible code through the finished local app and save the resulting ElevenLabs audio files.
-*   **Video Editing:** Stitch the screen recording, webcam footage, and AI audio together in a video editor, perfectly syncing the AI's verbal interruptions to the exact moment a coding mistake is made on screen.
+*   **Screen Recording:** Record writing terrible code.
+*   **Voice Recording:** Record yourself confidently explaining the terrible code.
+*   **Asset Generation:** Run both through the app to generate the perfect specific roast.
+*   **Video Editing:** Sync it all up for the final demo reel.
