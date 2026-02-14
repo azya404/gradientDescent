@@ -41,7 +41,7 @@ app.post("/api/roast", upload.single("audio"), async (req, res) => {
 
   try {
     // --- Generate roast via Gemini ---
-    const roast = await generateRoast(code, language);
+    const roast = await generateRoast(code, language, audioFile?.buffer, audioFile?.mimetype);
     console.log(`Roast generated: ${roast.substring(0, 80)}...`);
 
     res.json({
