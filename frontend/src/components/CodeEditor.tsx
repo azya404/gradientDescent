@@ -5,10 +5,11 @@ import Editor from '@monaco-editor/react';
 interface CodeEditorProps {
   onTyping: () => void;
   setCode: (value: string | undefined) => void;
+  value: string | undefined;
 }
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ onTyping, setCode }) => {
-  
+const CodeEditor: React.FC<CodeEditorProps> = ({ onTyping, setCode, value }) => {
+
   const handleEditorChange = (value: string | undefined) => {
     setCode(value);
     onTyping(); // Triggers the "AI is judging" animation
@@ -18,8 +19,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onTyping, setCode }) => {
     <div className="h-full w-full rounded-lg overflow-hidden border border-zinc-800 shadow-2xl">
       <Editor
         height="100%"
-        defaultLanguage="python"
-        defaultValue=""
+        language="python"
+        value={value}
         theme="vs-dark"
         onChange={handleEditorChange}
         options={{

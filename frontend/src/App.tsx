@@ -1,105 +1,202 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import CodeEditor from './components/CodeEditor';
 import AIAvatar from './components/AIAvatar';
-import AudioRecorder from './components/AudioRecorder';
+import LiveAudioRecorder from './components/LiveAudioRecorder';
+import { useLiveSession } from './hooks/useLiveSession';
+import { useAudioPlayer } from './hooks/useAudioPlayer';
 import type { AnimationState } from './types';
+
+const SNARKY_THOUGHTS = [
+  "Did I scare you off already?",
+  "Cat got your tongue?",
+  "Too scared to continue?",
+  "Lost your train of thought?",
+  "Need me to hold your hand?",
+  "Is this too much for you?",
+  "Thinking about giving up?",
+  "Did you forget how to code?",
+  "Running away so soon?",
+  "Can't handle the pressure?"
+];
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string | undefined>("");
   const [currentStatus, setCurrentStatus] = useState<AnimationState>('idle');
+  const [isTyping, setIsTyping] = useState(false);
+  const [thoughtBubble, setThoughtBubble] = useState<string | null>(null);
   const [auraScore] = useState(0);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [roastText, setRoastText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string>('');
+  const [isInterviewActive, setIsInterviewActive] = useState(false);
 
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const thoughtBubbleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const codeDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSubmit = async () => {
-    if (!code || code.trim().length === 0) {
-      setError('No code? Too scared to even try?');
+  // Initialize audio player
+  const audioPlayer = useAudioPlayer();
+
+  // Initialize WebSocket live session
+  const liveSession = useLiveSession({
+    onAudioChunk: (base64PCM) => {
+      // Play incoming PCM audio chunk
+      audioPlayer.playChunk(base64PCM);
+      // AI is speaking, show glitch_out state
+      setCurrentStatus('glitch_out');
+    },
+    onTranscript: (text) => {
+      // Display what AI is saying
+      setTranscript(text);
+      console.log('[AI]:', text);
+    },
+    onInputTranscript: (text) => {
+      // Display what user said (optional)
+      console.log('[User]:', text);
+    },
+    onInterrupted: () => {
+      // User interrupted AI, stop playback immediately
+      console.log('[Interrupted] User spoke while AI was speaking');
+      audioPlayer.stop();
+      setCurrentStatus('judging');
+    },
+    onError: (err) => {
+      console.error('[Session Error]:', err);
+      setError(err.message);
+    },
+    onConnected: () => {
+      console.log('[Session] Connected successfully');
+      setIsInterviewActive(true);
+      setError(null);
+    },
+    onDisconnected: () => {
+      console.log('[Session] Disconnected');
+      setIsInterviewActive(false);
+      setCurrentStatus('idle');
+    },
+  });
+
+  const handleCodeChange = (newCode: string | undefined) => {
+    setCode(newCode);
+
+    // Don't interfere with glitch_out state
+    if (currentStatus === 'glitch_out') {
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-    setRoastText(null);
-    setCurrentStatus('loading');
+    // Hide thought bubble when user starts typing again
+    setThoughtBubble(null);
+    if (thoughtBubbleTimeoutRef.current) {
+      clearTimeout(thoughtBubbleTimeoutRef.current);
+      thoughtBubbleTimeoutRef.current = null;
+    }
 
-    try {
-      // Build FormData payload
-      const formData = new FormData();
-      formData.append('language', 'python'); // Default to python, could be dynamic
-      formData.append('code', code);
+    // User is actively typing
+    if (newCode && newCode.trim().length > 0) {
+      setIsTyping(true);
+      setCurrentStatus('judging');
 
-      if (audioBlob) {
-        // Determine file extension from mime type
-        const ext = audioBlob.type.includes('webm') ? '.webm'
-                  : audioBlob.type.includes('mp4') ? '.mp4'
-                  : audioBlob.type.includes('ogg') ? '.ogg'
-                  : '.wav';
-        formData.append('audio', audioBlob, `explanation${ext}`);
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
       }
 
-      console.log('📤 Sending request to backend...');
-
-      // Call backend
-      const response = await fetch('/api/roast', {
-        method: 'POST',
-        body: formData,
-      });
-
-      console.log('📥 Response received:', response.status, response.statusText);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'Backend error');
-      }
-
-      // Extract roast text from header
-      const roastTextFromHeader = response.headers.get('X-Roast-Text');
-      if (roastTextFromHeader) {
-        setRoastText(decodeURIComponent(roastTextFromHeader));
-      }
-
-      // Get audio blob
-      const responseAudioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(responseAudioBlob);
-
-      // Play audio
-      if (audioRef.current && responseAudioBlob.size > 1000) {
-        audioRef.current.src = audioUrl;
-        console.log('🎵 Playing roast audio...');
-        audioRef.current.play().catch(err => {
-          console.error('Audio playback error:', err);
-          // If autoplay fails, reset state after a delay
-          setTimeout(() => setCurrentStatus('idle'), 2000);
-        });
-        setCurrentStatus('glitch_out');
-      } else {
-        console.warn('⚠️ Audio blob too small or invalid:', responseAudioBlob.size, 'bytes');
+      // Set new timeout: if no typing for 2 seconds, switch back to idle
+      typingTimeoutRef.current = setTimeout(() => {
+        setIsTyping(false);
         setCurrentStatus('idle');
-      }
 
-      // Safety timeout: reset state after 30 seconds if audio never ends
-      setTimeout(() => {
-        if (currentStatus === 'glitch_out') {
-          console.log('⏰ Audio timeout - resetting state');
-          setCurrentStatus('idle');
+        // Show snarky thought bubble after stopping (do NOT clear code)
+        const randomThought = SNARKY_THOUGHTS[Math.floor(Math.random() * SNARKY_THOUGHTS.length)];
+        setThoughtBubble(randomThought);
+
+        // Auto-hide thought bubble after 5 seconds
+        thoughtBubbleTimeoutRef.current = setTimeout(() => {
+          setThoughtBubble(null);
+        }, 5000);
+      }, 2000);
+
+      // Debounce code updates to WebSocket (send every 2 seconds)
+      if (isInterviewActive) {
+        if (codeDebounceRef.current) {
+          clearTimeout(codeDebounceRef.current);
         }
-      }, 30000);
-    } catch (err) {
-      console.error('Submission error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to connect to backend');
+
+        codeDebounceRef.current = setTimeout(() => {
+          liveSession.sendCode(newCode, 'python');
+        }, 2000);
+      }
+    } else {
+      // Empty code - go to idle immediately
+      setIsTyping(false);
       setCurrentStatus('idle');
-    } finally {
-      setIsSubmitting(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
     }
   };
 
-  const handleAudioEnded = () => {
-    setCurrentStatus('judging');
+  const handleStartInterview = useCallback(() => {
+    console.log('[Interview] Starting...');
+    setError(null);
+
+    // Initialize audio player (required for AudioContext - needs user interaction)
+    audioPlayer.init();
+
+    // Connect to WebSocket
+    liveSession.connect('python');
+  }, [audioPlayer, liveSession]);
+
+  const handleStopInterview = useCallback(() => {
+    console.log('[Interview] Stopping...');
+
+    // Disconnect WebSocket
+    liveSession.disconnect();
+
+    // Cleanup audio
+    audioPlayer.cleanup();
+
+    setIsInterviewActive(false);
+    setCurrentStatus('idle');
+  }, [audioPlayer, liveSession]);
+
+  const handleClear = () => {
+    setCode("");
+    setError(null);
+    setTranscript('');
+    setThoughtBubble(null);
+    setCurrentStatus('idle');
+    setIsTyping(false);
+
+    // Clear any pending timeouts
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (thoughtBubbleTimeoutRef.current) {
+      clearTimeout(thoughtBubbleTimeoutRef.current);
+      thoughtBubbleTimeoutRef.current = null;
+    }
+    if (codeDebounceRef.current) {
+      clearTimeout(codeDebounceRef.current);
+      codeDebounceRef.current = null;
+    }
   };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (thoughtBubbleTimeoutRef.current) {
+        clearTimeout(thoughtBubbleTimeoutRef.current);
+      }
+      if (codeDebounceRef.current) {
+        clearTimeout(codeDebounceRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-black">
@@ -107,24 +204,64 @@ const App: React.FC = () => {
       <div className="w-1/2 p-6 flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <h2 className="text-zinc-500 font-mono text-xs uppercase tracking-widest">Source Code</h2>
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`px-4 py-2 font-bold rounded transition-all transform ${
-              isSubmitting
-                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
-                : 'bg-red-600 hover:bg-red-700 text-white active:scale-95'
-            }`}
-          >
-            {isSubmitting ? 'ROASTING...' : 'SUBMIT FOR REVIEW'}
-          </button>
+          <div className="flex gap-2">
+            {isInterviewActive ? (
+              <button
+                onClick={handleStopInterview}
+                className="px-4 py-2 font-bold rounded transition-all transform bg-zinc-700 hover:bg-zinc-600 text-zinc-300 active:scale-95"
+              >
+                STOP INTERVIEW
+              </button>
+            ) : (
+              <button
+                onClick={handleStartInterview}
+                className="px-4 py-2 font-bold rounded transition-all transform bg-green-600 hover:bg-green-700 text-white active:scale-95"
+              >
+                START INTERVIEW
+              </button>
+            )}
+            <button
+              onClick={handleClear}
+              disabled={!isInterviewActive && code === ''}
+              className={`px-4 py-2 font-bold rounded transition-all transform ${
+                !isInterviewActive && code === ''
+                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                  : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300 active:scale-95'
+              }`}
+            >
+              CLEAR
+            </button>
+          </div>
         </div>
 
-        <div className="flex-1 min-h-0">
-          <CodeEditor setCode={setCode} onTyping={() => setCurrentStatus('judging')} />
+        <div className="flex-1 min-h-0 relative">
+          {/* Overlay placeholder when editor is truly empty (no content) */}
+          {(!code || code.length === 0) && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+              <div className="text-center">
+                <p className="text-zinc-600 font-mono text-lg mb-2">
+                  Start coding here or paste your code
+                </p>
+                <p className="text-zinc-700 font-mono text-sm">
+                  Click anywhere to begin...
+                </p>
+              </div>
+            </div>
+          )}
+          <CodeEditor
+            value={code}
+            setCode={handleCodeChange}
+            onTyping={() => {}}
+          />
         </div>
 
-        <AudioRecorder onAudioRecorded={setAudioBlob} />
+        {/* Live Audio Recorder Status */}
+        <LiveAudioRecorder
+          onAudioChunk={(base64PCM) => {
+            liveSession.sendAudio(base64PCM);
+          }}
+          isRecording={isInterviewActive}
+        />
 
         {/* Status Messages */}
         {error && (
@@ -133,22 +270,29 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {roastText && (
-          <div className="bg-zinc-900 border border-red-900 rounded-lg p-4 text-red-400 font-mono text-sm italic">
-            {roastText}
+        {transcript && (
+          <div className="bg-zinc-900 border border-purple-900 rounded-lg p-4 text-purple-400 font-mono text-sm italic">
+            <div className="text-zinc-500 text-xs mb-1">AI Transcript:</div>
+            {transcript}
           </div>
         )}
-
-        {/* Hidden audio player */}
-        <audio
-          ref={audioRef}
-          onEnded={handleAudioEnded}
-          className="hidden"
-        />
       </div>
 
       {/* RIGHT: AI Avatar area */}
-      <div className="w-1/2 border-l border-zinc-900 flex">
+      <div className="w-1/2 border-l border-zinc-900 flex relative">
+        {/* Snarky Thought Bubble */}
+        {thoughtBubble && (
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-50 animate-fadeIn">
+            <div className="relative bg-zinc-900 border-2 border-yellow-500 rounded-2xl px-6 py-3 shadow-xl max-w-md">
+              <p className="text-yellow-400 text-sm" style={{ fontFamily: 'Electrolize, monospace' }}>
+                {thoughtBubble}
+              </p>
+              {/* Speech bubble tail pointing down */}
+              <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-yellow-500" />
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-zinc-900" />
+            </div>
+          </div>
+        )}
         <AIAvatar state={currentStatus} auraScore={auraScore} />
       </div>
     </div>
