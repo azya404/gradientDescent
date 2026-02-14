@@ -1,0 +1,4 @@
+- AI avatar will change and have different animations for different parts.
+- Animation for when the user is typing, the user is static, the user is making mistakes, when the AI is speaking. 
+- Output for text, output for
+- 
