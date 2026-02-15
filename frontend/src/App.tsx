@@ -59,6 +59,11 @@ const App: React.FC = () => {
       audioPlayer.stop();
       setCurrentStatus('judging');
     },
+    onTurnComplete: () => {
+      // AI finished its roast turn — reset state so new code/speech triggers another roast
+      console.log('[Turn Complete] AI finished speaking, ready for new input');
+      setCurrentStatus('idle');
+    },
     onError: (err) => {
       console.error('[Session Error]:', err);
       setError(err.message);
@@ -224,8 +229,8 @@ const App: React.FC = () => {
               onClick={handleClear}
               disabled={!isInterviewActive && code === ''}
               className={`px-4 py-2 font-bold rounded transition-all transform ${!isInterviewActive && code === ''
-                  ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-                  : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300 active:scale-95'
+                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-300 active:scale-95'
                 }`}
             >
               CLEAR

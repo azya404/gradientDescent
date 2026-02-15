@@ -6,6 +6,7 @@ export interface LiveSessionCallbacks {
   onTranscript: (text: string) => void;
   onInputTranscript?: (text: string) => void;
   onInterrupted?: () => void;
+  onTurnComplete?: () => void;
   onError?: (error: Error) => void;
   onConnected?: () => void;
   onDisconnected?: () => void;
@@ -68,6 +69,10 @@ export function useLiveSession(callbacks: LiveSessionCallbacks): LiveSession {
 
           case 'interrupted':
             callbacks.onInterrupted?.();
+            break;
+
+          case 'turn_complete':
+            callbacks.onTurnComplete?.();
             break;
 
           case 'error':
