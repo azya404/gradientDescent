@@ -26,7 +26,6 @@ const App: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [thoughtBubble, setThoughtBubble] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string>('');
   const [isInterviewActive, setIsInterviewActive] = useState(false);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -45,9 +44,8 @@ const App: React.FC = () => {
       setCurrentStatus('glitch_out');
     },
     onTranscript: (text) => {
-      // Display what AI is saying
-      setTranscript(text);
-      console.log('[AI]:', text);
+      // Log transcript for debugging only (not displayed to user)
+      console.log('[AI Transcript]:', text);
     },
     onInputTranscript: (text) => {
       // Display what user said (optional)
@@ -163,7 +161,6 @@ const App: React.FC = () => {
   const handleClear = () => {
     setCode("");
     setError(null);
-    setTranscript('');
     setThoughtBubble(null);
     setCurrentStatus('idle');
     setIsTyping(false);
@@ -269,13 +266,6 @@ const App: React.FC = () => {
         {error && (
           <div className="bg-red-950 border border-red-800 rounded-lg p-3 text-red-400 font-mono text-sm">
             ❌ {error}
-          </div>
-        )}
-
-        {transcript && (
-          <div className="bg-zinc-900 border border-purple-900 rounded-lg p-4 text-purple-400 font-mono text-sm italic">
-            <div className="text-zinc-500 text-xs mb-1">AI Transcript:</div>
-            {transcript}
           </div>
         )}
       </div>
