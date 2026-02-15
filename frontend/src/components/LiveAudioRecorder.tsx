@@ -16,6 +16,12 @@ const LiveAudioRecorder: React.FC<LiveAudioRecorderProps> = ({ onAudioChunk, isR
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
+  // Store callback in a ref so the audio pipeline is never torn down due to prop changes
+  const onAudioChunkRef = useRef(onAudioChunk);
+  useEffect(() => {
+    onAudioChunkRef.current = onAudioChunk;
+  }, [onAudioChunk]);
+
   const startRecording = useCallback(async () => {
     try {
       console.log('[Mic] Requesting microphone access...');
@@ -53,8 +59,8 @@ const LiveAudioRecorder: React.FC<LiveAudioRecorderProps> = ({ onAudioChunk, isR
         // Process: downsample to 16kHz, convert to Int16, encode to base64
         const base64PCM = processMicrophoneChunk(inputData, sampleRate);
 
-        // Send to WebSocket
-        onAudioChunk(base64PCM);
+        // Send to WebSocket via ref (stable — never causes mic restart)
+        onAudioChunkRef.current(base64PCM);
       };
 
       // Connect: source → processor → destination
@@ -67,7 +73,7 @@ const LiveAudioRecorder: React.FC<LiveAudioRecorderProps> = ({ onAudioChunk, isR
       setError('Microphone access denied. Please allow microphone permissions.');
       setHasPermission(false);
     }
-  }, [onAudioChunk]);
+  }, []); // No dependency on onAudioChunk — uses ref instead
 
   const stopRecording = useCallback(() => {
     console.log('[Mic] Stopping recording...');
@@ -114,9 +120,8 @@ const LiveAudioRecorder: React.FC<LiveAudioRecorderProps> = ({ onAudioChunk, isR
   return (
     <div className="flex items-center gap-2">
       <div
-        className={`w-3 h-3 rounded-full transition-all ${
-          isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-600'
-        }`}
+        className={`w-3 h-3 rounded-full transition-all ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-zinc-600'
+          }`}
       />
       <span className="text-zinc-400 font-mono text-sm">
         {isRecording ? 'Recording...' : hasPermission ? 'Ready' : 'Microphone Inactive'}

@@ -30,6 +30,7 @@ When the candidate writes code or explains their solution:
  * @param {function(string)} callbacks.onTranscript  - text transcript of the model's audio response
  * @param {function(string)} callbacks.onInputTranscript - text transcript of the user's audio input
  * @param {function()}       callbacks.onInterrupted - model was interrupted by user speech
+ * @param {function()}       callbacks.onTurnComplete - model finished its response turn
  * @param {function(Error)}  callbacks.onError       - error occurred
  * @param {function()}       callbacks.onClose       - session closed
  * @returns {Promise<object>} The live session object
@@ -81,6 +82,12 @@ async function createLiveSession(callbacks) {
                 // --- Interruption ---
                 if (message.serverContent?.interrupted) {
                     callbacks.onInterrupted?.();
+                }
+
+                // --- Turn complete (model finished speaking) ---
+                if (message.serverContent?.turnComplete) {
+                    console.log("[Live] Model turn complete");
+                    callbacks.onTurnComplete?.();
                 }
             },
             onerror: (err) => {

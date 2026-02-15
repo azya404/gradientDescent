@@ -277,12 +277,6 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {transcript && (
-          <div className="bg-zinc-900 border border-purple-900 rounded-lg p-4 text-purple-400 font-mono text-sm italic">
-            <div className="text-zinc-500 text-xs mb-1">AI Transcript:</div>
-            {transcript}
-          </div>
-        )}
       </div>
 
       {/* RIGHT: AI Avatar area */}

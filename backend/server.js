@@ -121,6 +121,11 @@ wss.on("connection", (ws) => {
                 ws.send(JSON.stringify({ type: "interrupted" }));
               }
             },
+            onTurnComplete: () => {
+              if (ws.readyState === ws.OPEN) {
+                ws.send(JSON.stringify({ type: "turn_complete" }));
+              }
+            },
             onError: (err) => {
               console.error("[WS] Live session error:", err.message || err);
               if (ws.readyState === ws.OPEN) {
