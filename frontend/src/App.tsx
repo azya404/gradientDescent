@@ -25,7 +25,6 @@ const App: React.FC = () => {
   const [currentStatus, setCurrentStatus] = useState<AnimationState>('idle');
   const [isTyping, setIsTyping] = useState(false);
   const [thoughtBubble, setThoughtBubble] = useState<string | null>(null);
-  const [auraScore] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string>('');
   const [isInterviewActive, setIsInterviewActive] = useState(false);
@@ -296,7 +295,7 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-        <AIAvatar state={currentStatus} auraScore={auraScore} />
+        <AIAvatar state={currentStatus} />
       </div>
     </div>
   );
